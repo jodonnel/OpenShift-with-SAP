@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+  - service.yaml
+  - route.yaml
+configMapGenerator:
+  - name: hello-html
+    files:
+      - index.html=./html/index.html
+generatorOptions:
+  disableNameSuffixHash: false
+patches:
+  - target: { version: v1, kind: Deployment, name: hello }
+    patch: |
+      - op: add
+        path: /spec/template/spec/volumes
+        value:
+          - name: web
+            configMap: { name: hello-html }
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts
+        value:
+          - name: web
+            mountPath: /var/www/html
+            readOnly: true
